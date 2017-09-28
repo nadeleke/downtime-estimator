@@ -148,7 +148,7 @@ def call_estimator(rdd):
     # Obtain well recent history from redis cache
     history = hist_map.hgetall(id)
 
-    # read from redis for recent history data or set initial values
+    # read from redis for recent history data or set initial values based on field averages
     if history == {}:
 
         if hist_map.keys():
