@@ -12,12 +12,6 @@ from pyspark.sql import SparkSession, SQLContext, Row, DataFrame
 # from pyspark.sql import DataFrameReader
 from pyspark.streaming.kafka import KafkaUtils
 
-u = 'ubuntu'
-p = 'ubuntu'
-db = 'ubuntudb'
-host = 'localhost'
-port = "5432"
-
 
 # # Lazily instantiated global instance of SparkSession
 # def getSparkSessionInstance(sparkConf):
