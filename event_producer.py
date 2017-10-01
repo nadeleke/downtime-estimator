@@ -224,7 +224,7 @@ if __name__ == "__main__":
     # while dt < datetime.datetime(2017, 1, 22, 9, 53, 42):
     while True:
 
-        # Wait for 5 seconds
+        # Wait for 1 second
         time.sleep(1)
 
         dt = nextTimeStamp(dt, max_step)  # increase max_step to extend
@@ -263,7 +263,7 @@ if __name__ == "__main__":
                     # with open('historical_data.txt', 'a') as f:
                     #     f.write(str(event)+'\n')
 
-                    print(str(event))
+                    # print(str(event))
                     # print('after=',  well_stat[wellID])
                     producer.send_messages('event_data_topic', str(partition_key).encode(), str(event).encode())
 
