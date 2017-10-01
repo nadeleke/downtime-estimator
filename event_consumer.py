@@ -137,12 +137,10 @@ def call_estimator(rdd):
     # state = rdd['state']
 
     ## point to hist_map in redis cache
-    # hist_map = redis.StrictRedis(host='ec2-34-234-123-146.compute-1.amazonaws.com', port=6379, db=0,
-    #                              decode_responses=True)
+    # hist_map = redis.StrictRedis(host=REDIS_DNS, port=6379, db=0, decode_responses=True)
 
     ## point to hist_map in distibuted redis cache
-    hist_map = redis.StrictRedis(host='ec2-52-54-82-142.compute-1.amazonaws.com', port=6379, db=0,
-                                 decode_responses=True)
+    hist_map = redis.StrictRedis(host=REDIS_DNS, port=6379, db=0, decode_responses=True)
 
 
     # Obtain well recent history from redis cache
