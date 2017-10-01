@@ -6,7 +6,8 @@ text text text
 2. [Data Ingestion using Kafka](README.md#data-ingestion-using-kafka)
 3. [Distributed Computing using Spark](README.md#distributed-computing-using-spark)
 4. [Data Storage using Redis Cache](README.md#data-storage-using-redis-cache)
-5. [FAQ](README.md#faq)
+5. [Setup Steps](README.md#setup-steps)
+6. [FAQ](README.md#faq)
 
 ## Stream Data Engineering
 text text text
@@ -30,6 +31,9 @@ text text text
 |:--:| 
 | *Figure 2: text text text* |
 
-##	FAQ
+## Setup Steps
+text text text
+
+## FAQ
 text text text
 
