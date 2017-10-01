@@ -204,32 +204,10 @@ def call_estimator(rdd):
                     vp_hist.pop(len(vp_hist) - 1)
                     on_dt_hist.pop(len(on_dt_hist) - 1)
 
-    # --------------------------
-    # The simple model
-    # --------------------------
-    # # Determine delta_t
-    # delta_t = seconds_between(time, time_hist[-1])
-    #
-    # # Estimated inflow rate
-    # r_inflow = vol_p / delta_t - vol_w / delta_t
-    #
-    # # downtime estimate
-    # delta_t_n = r_inflow / vol_w
-    #
-    # # determine estimated time for next start up
-    # time_n = datetime.timedelta(seconds=delta_t_n) + datetime.datetime.strptime(time.decode(), "%Y-%m-%d %H:%M:%S")
-    #
-    # # update redis
-    # hist_map.hmset(id, {'id': id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
-    #                 'off_list': off_dt_hist, 'time_n': time_n, 'delta_t_n': delta_t_n, 'fieldID': field_id,
-    #                 'comp': comp_type, 'field': field})
-    #
-    # return hist_map.hgetall(id)
-
 
 
     # --------------------------
-    # The comprehensive model
+    # The estimator model
     # --------------------------
     if len(vp_hist) >= 3:  # Determine downtown estimate
 
