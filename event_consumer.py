@@ -320,7 +320,6 @@ if __name__ == "__main__":
 
     # kafkaStream = KafkaUtils.createStream(ssc, 'localhost:2181', 'spark-streaming', {'event_data_topic': 1})
     # kafkaStream = KafkaUtils.createStream(ssc, kafkaIP + ':9092', 'spark-streaming', {'event_data_topic': 1})
-    # kafkaStream = KafkaUtils.createDirectStream(ssc, ["event_data_topic"], {"bootstrap.servers": '54.156.225.243' + ':9092'})
     kafkaStream = KafkaUtils.createDirectStream(ssc, ["event_data_topic"], {"bootstrap.servers": kafkaIP + ':9092'})
 
     # counting number of messages in kafka stream
