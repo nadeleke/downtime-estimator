@@ -2,14 +2,14 @@
 
 text text text
 
-1. [Stream Data Engineering](README.md#stream-data-engineering)
+1. [Stream Data Generation](README.md#stream-data-generation)
 2. [Data Ingestion using Kafka](README.md#data-ingestion-using-kafka)
 3. [Distributed Computing using Spark](README.md#distributed-computing-using-spark)
 4. [Data Storage using Redis Cache](README.md#data-storage-using-redis-cache)
 5. [Setup Steps](README.md#setup-steps)
 6. [FAQ](README.md#faq)
 
-## Stream Data Engineering
+## Stream Data Generation
 text text text
 
 ## Data Ingestion using Kafka
