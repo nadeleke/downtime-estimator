@@ -1,0 +1,207 @@
+{% extends "index.html" %}
+
+{% block title %}Downtime Estimator &trade; {% endblock %}
+{% block head %}
+  <!-- <link href="{{ url_for('static', filename='css/map.css') }}" rel="stylesheet">     -->
+  {{ super() }}
+<!--   <style type="text/css">
+    .important { color: #336699; }
+  </style> -->
+{% endblock %}
+{% block content %}
+  
+  <!-- JavaScript for field selection option -->
+  <script type="text/javascript">
+    var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
+  <script type="text/javascript">
+    // $(function() {
+    var i=0;
+    var messages = new Array();
+    var leaveChange = function () {
+
+        $.getJSON($SCRIPT_ROOT + '/fieldselection',{field: $("#field0").val()} , 
+        function(data) {
+          // var obj = $('#result').text(data.result);
+          // if (window.console) console.log(data.result);
+          // if (window.console) console.log(data.length);
+
+          // Loop to set marker for wells in the selected field
+          var jsonvalue = data.result
+          // if (window.console) console.log(jsonvalue);
+          for (var key in jsonvalue) {
+              if (jsonvalue.hasOwnProperty(key)) {
+                  // console.log(key, jsonvalue[key]);
+                  var well = jsonvalue[key]
+
+                  // Well Markers
+                  if (well.status == 'on'){
+                    var pinColor = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|0000FF"
+                    var pinImage = new google.maps.MarkerImage(pinColor//,
+                      // new google.maps.Size(21, 34),
+                      // new google.maps.Point(0, 0),
+                      // new google.maps.Point(10, 34)
+                    );
+                    var markerOptions = {
+                      position: new google.maps.LatLng(well.lat, well.lng),
+                      icon: pinImage,
+                      // map:mapobj
+                    };
+                    //var marker = new google.maps.Marker(markerOptions);
+                  } else {
+                    var markerOptions = {
+                      position: new google.maps.LatLng(well.lat, well.lng),
+                      // map:mapobj
+                    };
+                    //var marker = new google.maps.Marker(markerOptions);
+                  }
+                  // var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + pinColor,
+                  var marker = new google.maps.Marker(markerOptions);
+                  // Info Window
+                  var infoWindowOptions = {
+                      content: well.message,
+                      // map:mapobj
+                  };
+                                    var infowindow = new google.maps.InfoWindow(infoWindowOptions);
+
+
+                  /*google.maps.event.addListener(marker,'click',function(e){
+                  var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+                    infoWindow.open(map, marker, infoWindow);
+                  });*/
+                  i+=1;
+                  messages[i] = well.message;
+                  marker.setMap(mapobj);
+
+                  google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                  return function() {
+                    infowindow.setContent(messages[i]);
+                    infowindow.open(map, marker);
+                  }
+                  })(marker, i));
+                      // marker.addListener('click'), function(){
+                      //   infoWindow.open(map, marker);
+                      // }
+
+                  }
+                  mapobj.setZoom(9);
+                  mapobj.panTo(marker.getPosition());
+                  mapobj.setCenter(marker.getPosition());
+          }
+
+        });
+
+      }
+
+    // }) 
+  </script>
+  
+  
+  <!-- JavaScript for well id search option -->
+  <script type="text/javascript">
+    var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
+  <script type="text/javascript">
+    var submit_form2 = function(e) {
+        $.getJSON($SCRIPT_ROOT + '/wellsearch', {well_id: $('input[name="well_id"]').val()}, 
+          function(data) {
+          $('#result').text(data.result);
+
+          // if (window.console) console.log($SCRIPT_ROOT + '/wellsearch');
+          // if (window.console) console.log(data.result);
+           var well = data.result;
+
+          var markerOptions = {
+            position: new google.maps.LatLng(well.lat, well.lng)
+            // icon: pinImage
+          };
+          var marker = new google.maps.Marker(markerOptions);
+          marker.setMap(mapobj);
+          mapobj.setZoom(11);
+          mapobj.panTo(marker.getPosition());
+          mapobj.setCenter(marker.getPosition());
+
+          // Info Window
+          var infoWindowOptions = {
+              content: well.message
+              // content: decodeURIComponent(well.message.replace(\n, ' ')
+          };
+          var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+          google.maps.event.addListener(marker,'click',function(e){
+            infoWindow.open(map, marker);
+          });
+
+          $('input[name="well_id"]').focus().select();
+          });
+        setTimeout(submit_form2,3000);
+        return false;
+      };
+  </script>
+
+
+
+
+  <!-- HTML code for field selection and well ID search bar -->
+  <div style="float:left; width:20%;">    
+
+    <br>
+    <p> <center><h3>Find your well</h3></center></p>
+    <!-- <p>We'll help you locate your well. Simply choose an option below to begin...</p> -->
+
+    <p><center><h7> Select your field: </h7></center></p>
+    <center>
+    <label>
+      <div class="well">
+        <select class="form-control" onchange="leaveChange()" name="field0" id="field0" style="width: 200px;">
+          <option value="select_field_name" select="selected">select field name ...</option>
+          <option value="Eagleville">Eagleville</option>
+          <option value="Spraberry">Spraberry</option>
+          <option value="Prudhoe Bay">Prudhoe Bay</option>
+          <option value="Wattenberg">Wattenberg</option>
+          <option value="Briscoe Ranch">Briscoe Ranch</option>
+          <option value="Kuparuk River">Kuparuk River</option>
+          <option value="Mississippi Canyon">Mississippi Canyon</option>
+          <option value="Wasson">Wasson</option>
+          <option value="Belridge South">Belridge South</option>
+          <option value="Green Canyon">Green Canyon</option>
+        </select>
+      </div>
+    </label>
+    </center>
+
+    <p><center><h7> Search by Well ID: </h7></center></p>
+    <center>
+      <div id="searchBar">
+      <!-- <form class="form-inline mt-2 mt-md-0" > -->
+        <input class="form-control mr-sm-2" name='well_id' id='well_id' type="text" style="width: 200px;" placeholder="Enter Well ID" aria-label="Search"></input>
+        <br />
+        <button class="btn btn-outline-success my-2 my-sm-0" style="width: 75px" onclick="submit_form2()">Search</button>
+      <!-- </form> -->
+      </div>
+    </center>
+
+    <br>
+    <p> Downtime estimator &trade; is a data-driven tool that provides real-time downtime estimations for beam-pumps using state-change extrapolation and mass conservaiton.</p>
+
+  </div>
+
+  <script type="text/javascript">
+    function initMap(){
+      var options = {
+        zoom: 4,
+        center: {lat:37.09024, lng:-100.712891}
+      }
+    }
+  </script>
+
+  <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBH5r2orFJ9QMFbRsJdsZlo4_tMmN-07NU&sensor=false"></script> -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBH5r2orFJ9QMFbRsJdsZlo4_tMmN-07NU&callback=initMap&sensor=false"></script> 
+  <div style="float:right; width:80%;" id="map"></div>
+{% endblock %}
+
+{% block footer %}
+  <footer>
+    <!-- <p class="float-right"><a href="#">Back to top</a></p> -->
+    <p>&copy; 2017 Company, Inc. &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></p>
+  </footer>
+{% endblock %}
