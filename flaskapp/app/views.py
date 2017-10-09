@@ -14,7 +14,7 @@ def estimator():
 
 @app.route('/wellsearch')
 def wellFinder():
-	dns = 'ec2-34-234-14-219.compute-1.amazonaws.com'
+	dns = 'YOUR KEY-VALUE DATABASE DNS'
 	well_id = request.args.get('well_id')
 	# well_id = str(well_id)
 	hist_map = redis.StrictRedis(host=dns, port=6379, db=0, decode_responses=True)
@@ -84,7 +84,7 @@ def wellFinder():
 @app.route('/fieldselection')
 def fieldSelector():
 	fields = {}
-	dns = 'ec2-34-234-14-219.compute-1.amazonaws.com'
+	dns = 'YOUR KEY-VALUE DATABASE DNS'
 	fields['1']=dict(fieldID='1',field='Eagleville',lat=31.968599,lng=-99.901813)
 	fields['2']=dict(fieldID='2',field='Spraberry',lat=32.6828828,lng=-101.7823657)
 	fields['3']=dict(fieldID='3',field='Prudhoe Bay',lat=70.325556,lng=-148.711389)
