@@ -5,7 +5,7 @@ Downtime means different things in different industries. But fundamentally, down
 The business case that inspired the development of this tool is downtime estimation during production in well that use artificial lift pump
 Fluid levels rise and drop in wellbores and pumps must be shut in order not to break them. Sensor data from pumps and pattern recognition from pump motion is used to determine when a pump should be shut-in. Pump data is no longer available when the pump has been shutdown. However, pump metadata (state change data) describing when the pump was shut-in and how much was produced in the time period the pump was on remains available. While the pump is off, valuable oil production is halted. The ability to estimate the amount of time it will take for the fluid level in the wellbore to rise above an acceptable threshold above the pumps can be turned on and oil production can commence is crucial. 
 
-Our goal is to come up with a data-driven method for estimating production downtown.
+Our goal was to develop a data-driven methodology for estimating production downtown. The following is the outline explains the components of the downtime estimator.
 
 1. [Stream Data Generation](README.md#stream-data-generation)
 2. [Data Ingestion using Kafka](README.md#data-ingestion-using-kafka)
@@ -31,11 +31,6 @@ The result of the computation along with recent history information is being sto
 | ![Figure 1](./images/figure_1.png) | 
 |:--:| 
 | *Figure 1: A real-time streaming and processing data pipeline for downtime estimation* |
-
-
-#| ![Figure 2](./images/figure_2.png) | 
-#|:--:| 
-#| *Figure 2: text text text* |
 
 ## Setup Steps
 Coming soon!
