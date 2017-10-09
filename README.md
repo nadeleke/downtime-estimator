@@ -28,7 +28,7 @@ Consumption of the data from the kafka queue and distibuted computing was accomp
 The result of the computation along with recent history information is being stored in redis real-time. This is stored on a replicated node cluster (1 master, 1 slave). The reason for this is to prevent data loss in case of node failures. 
 
 ## The Pipeline
-| ![Figure 1](./images/figure_1.png) | 
+| ![Figure 1](./images/Streaming_Pipeline.png) | 
 |:--:| 
 | *Figure 1: A real-time streaming and processing data pipeline for downtime estimation* |
 
