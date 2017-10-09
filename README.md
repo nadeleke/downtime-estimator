@@ -15,10 +15,10 @@ Our goal was to develop a data-driven methodology for estimating production down
 6. [FAQ](README.md#faq)
 
 ## Stream Data Generation
-Due to the fact lack of real data to develop such a tool. Data was generated to simulate pump metadata (state-change data).
+Data was generated to simulate pump metadata (state-change data). The data includes well ID, event timestamp, event type (shutdown or startup), production volume at shutdown, well completion info., wellbore volume, field, well lat-lng, state. Typically, this information would be collected on scada systems that house operation data. 
 
 ## Data Ingestion using Kafka
-Data ingestion for the data stream was published on a kafka platform. The event-producer.py script generates this data and sends them to the kafka queue. 
+Data ingestion for the data stream was published on a distributed kafka cluster on AWS ec2 (an elastic cloud computing platform). The event-producer.py script generates the pump metadata and sends them to the kafka queue.
 
 ## Distributed Computing using Spark
 Consumption of the data from the kafka queue and distibuted computing was accomplished using spark-streaming session, which is a micro-batching library in pyspark. Computations were distributed on four ec2 nodes (1 master and 3 workers). Zookeeper and spark were installed on these nodes using pegasus (which is a VM based deployment tool for prototyping other Big Data tools on Amazon Web Services). The event-consumer.py script is the pyspark code that consumes the data from the kafka queue and processes them real-time in a distributed manner. This code also saves the original data to AWS S3, which is a highly scalable data repository.The same code also saved processed data result and recent history well parameters into redis, which is an memory cache key-value store. 
