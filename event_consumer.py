@@ -337,12 +337,12 @@ if __name__ == "__main__":
     json_rdd = json_string_rdd.map(lambda x: ast.literal_eval(x))
     # json_rdd.pprint()
 
-    # json_rdd.foreachRDD(lambda rdd: rdd.foreachPartition(lambda x: call_estimator(x)))
+    json_rdd.foreachRDD(lambda rdd: rdd.foreachPartition(lambda x: call_estimator(x)))
     # result = json_rdd.map(lambda x: call_estimator(x))
     # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
     # json_rdd.foreachRDD(lambda x: call_estimator(x))
     # result.pprint()
-    json_rdd.map(lambda x: call_estimator(x))
+    # json_rdd.map(lambda x: call_estimator(x))
 
 
     ssc.start()
