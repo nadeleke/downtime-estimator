@@ -342,7 +342,10 @@ if __name__ == "__main__":
     # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
     # json_rdd.foreachRDD(lambda x: call_estimator(x))
     # result.pprint()
-    # json_rdd.map(lambda x: call_estimator(x))
+    # json_rdd2 = json_rdd.map(lambda x: call_estimator(x))
+    
+    # Write to S3 (This action forces the execution of the transformations above)
+    json_rdd.repartition(1).saveAsTextFiles("s3n://originaleventdata/historicaldata.json")
 
 
     ssc.start()
