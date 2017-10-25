@@ -113,29 +113,24 @@ def solveLinearSys(a, b):
     return np.linalg.solve(a, b)
 
 
+# This is only used if the foreachPartition function is used. Otherwise 
 def call_estimator_looper(rdd):
     for i in rdd:
         call_estimator(i)
 
 
-def call_estimator(rdd):
-    id = rdd['id']
-    time = rdd['time']
-    status = rdd['status']
-    vol_p = rdd['vp']
-    vol_w = rdd['vw']
-    # rp = rdd['rop']
-    field_id = rdd['fieldID']
-    comp_type = rdd['comp']
-    field = rdd['field_name']
-    # state = rdd['state']
-
-    ## point to hist_map in redis cache
-    # hist_map = redis.StrictRedis(host=REDIS_DNS, port=6379, db=0, decode_responses=True)
+def call_estimator(record):
+    id = record['id']
+    time = record['time']
+    status = record['status']
+    vol_p = record['vp']
+    vol_w = record['vw']
+    field_id = record['fieldID']
+    comp_type = record['comp']
+    field = record['field_name']
 
     ## point to hist_map in distibuted redis cache
     hist_map = redis.StrictRedis(host=REDIS_DNS, port=6379, db=0, decode_responses=True)
-
 
     # Obtain well recent history from redis cache
     history = hist_map.hgetall(id)
@@ -303,7 +298,7 @@ def call_estimator(rdd):
                             'off_list': off_dt_hist, 'time_n': time_n, 'delta_t_n': delta_t_n, 'fieldID': field_id,
                             'comp': comp_type, 'field': field})
 
-    return hist_map.hgetall(id)
+    return hist_map.hgetall(id), record
 
 
 if __name__ == "__main__":
@@ -337,9 +332,8 @@ if __name__ == "__main__":
     json_rdd = json_string_rdd.map(lambda x: ast.literal_eval(x))
     # json_rdd.pprint()
 
-    json_rdd.foreachRDD(lambda rdd: rdd.foreachPartition(lambda x: call_estimator(x)))
     # result = json_rdd.map(lambda x: call_estimator(x))
-    # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
+    json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
     # json_rdd.foreachRDD(lambda x: call_estimator(x))
     # result.pprint()
     # json_rdd2 = json_rdd.map(lambda x: call_estimator(x))
