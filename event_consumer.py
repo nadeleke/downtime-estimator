@@ -6,11 +6,10 @@ import datetime
 import numpy as np
 
 from pyspark import SparkContext
-# from pyspark.sql.types import StructType, IntegerType, StringType, StructField
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SparkSession, SQLContext, Row, DataFrame
-# from pyspark.sql import DataFrameReader
 from pyspark.streaming.kafka import KafkaUtils
+# from pyspark.sql.types import StructType, IntegerType, StringType, StructField
 
 
 # # Lazily instantiated global instance of SparkSession
@@ -45,29 +44,6 @@ from pyspark.streaming.kafka import KafkaUtils
 #         pass
 
 
-# def write_to_postres_DB(rdd):
-#     try:
-#         # Get the singleton instance of SparkSession
-#         spark = getSparkSessionInstance(rdd.context.getConf())
-#
-#         df = spark.read.json(rdd)
-#
-#         # Creates a temporary view using the DataFrame
-#         df.createOrReplaceTempView("temp")
-#         # df.show()
-#
-#         sqlDF = spark.sql("SELECT id, vp_hist, time_hist FROM temp")
-#         sqlDF.show()
-#
-#         # sqlDF.write \
-#         #     .format("org.postgresql_postgresql-42.1.1") \
-#         #     .mode('append') \
-#         #     .options(table="test", keyspace="downtime_estimation") \
-#         #     .save()
-#     except:
-#         pass
-
-
 def getEvents(tokens):
     # dt = datetime.datetime.strptime(tokens[0], "%Y-%m-%d %H:%M:%S")
     dt = tokens[0].decode()
@@ -82,7 +58,7 @@ def getEvents(tokens):
     rate = tokens[9].decode()
     return {'id': ID, 'time': dt, 'status': status, 'vol_prod': vol_prod, 'fieldID': fieldID,
             'completion_type': completion_type, 'wellbore_vol': wellbore_vol, 'field_name': field_name, 'state': state,
-            'rate': rate}  # Note: the rate here is production per day and not
+            'rate': rate}  
 
 
 def getSeconds(t):
@@ -332,10 +308,8 @@ if __name__ == "__main__":
     json_rdd = json_string_rdd.map(lambda x: ast.literal_eval(x))
     # json_rdd.pprint()
 
-    # result = json_rdd.map(lambda x: call_estimator(x))
+    # Estimate downtime
     # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
-    # json_rdd.foreachRDD(lambda x: call_estimator(x))
-    # result.pprint()
     json_rdd2 = json_rdd.map(lambda x: call_estimator(x))
     
     # Write to S3 (This action forces the execution of the transformations above)
