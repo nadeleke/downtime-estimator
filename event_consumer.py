@@ -57,7 +57,7 @@ def solveLinearSys(a, b):
 
 
 def call_estimator(record, redis_dns):
-    id = record['id']
+    well_id = record['id']
     time = record['time']
     status = record['status']
     vol_p = record['vp']
@@ -70,23 +70,23 @@ def call_estimator(record, redis_dns):
 
     time_format = "%Y-%m-%d %H:%M:%S"
 
-    # point to hist_map in redis cache
-    hist_map = redis.StrictRedis(host=redis_dns, port=6379, db=0, decode_responses=True)
+    # point to hist_hmap db in redis cache for the current field id
+    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=int(field_id), decode_responses=True)
 
-    # obtain recent history from redis cache for current well id
-    history = hist_map.hgetall(id)
+    # obtain recent history from redis cache for current well_id
+    history = hist_hmap.hgetall(well_id)
 
     # read from redis for recent history data or set initial values based on field averages
-    if history == {}:history
+    if history == {}:
 
-        if hist_map.keys():
+        if hist_hmap.keys():
             # if redis is empty compute field averages for initialization parameters
             vp_hist_sum = [0, 0, 0, 0]
             on_dt_hist_sum = [0, 0, 0, 0]
             off_dt_hist_sum = [0, 0, 0, 0]
             count = 0
-            for temp_id in hist_map.keys():
-                history_avg = hist_map.hgetall(temp_id)
+            for temp_id in hist_hmap.keys():
+                history_avg = hist_hmap.hgetall(temp_id)
                 hav1 = ast.literal_eval(history_avg['vp'])
                 hav2 = ast.literal_eval(history_avg['on_list'])
                 hav3 = ast.literal_eval(history_avg['off_list'])
@@ -97,7 +97,7 @@ def call_estimator(record, redis_dns):
                         vp_hist_sum = [x + y for x, y in zip(vp_hist_sum, hav1)]
                         on_dt_hist_sum = [x + y for x, y in zip(on_dt_hist_sum, hav2)]
                         off_dt_hist_sum = [x + y for x, y in zip(off_dt_hist_sum, hav3)]
-                        if count >= 2:
+                        if count >= 5:
                             break
             if count > 0:
                 vp_hist = [x / count for x in vp_hist_sum]
@@ -105,13 +105,13 @@ def call_estimator(record, redis_dns):
                 off_dt_hist = [x / count for x in off_dt_hist_sum]
                 time_hist = [datetime.datetime.strptime(time.decode(), time_format) - datetime.timedelta(seconds=60)]
             else:
-                # Initializing empty list if hist_map on redis is empty for the current wellID
+                # Initializing empty list if hist_hmap on redis is empty for the current wellID
                 time_hist = []
                 vp_hist = []
                 on_dt_hist = []
                 off_dt_hist = []
         else:
-            # Initializing empty list if hist_map on redis is empty for the current wellID
+            # Initializing empty list if hist_hmap on redis is empty for the current wellID
             time_hist = []
             vp_hist = []
             on_dt_hist = []
@@ -152,7 +152,7 @@ def call_estimator(record, redis_dns):
     #             if vp_hist:
     #                 vp_hist.pop(len(vp_hist) - 1)
     #                 on_dt_hist.pop(len(on_dt_hist) - 1)
-    # else:  # Initializing empty list if hist_map on redis is empty for the current wellID
+    # else:  # Initializing empty list if hist_hmap on redis is empty for the current wellID
     #     time_hist = []
     #     vp_hist = []
     #     on_dt_hist = []
@@ -212,7 +212,7 @@ def call_estimator(record, redis_dns):
             # vp_hist.pop(0)
 
         # update redis cache
-        hist_map.hmset(id, {'id': id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
+        hist_hmap.hmset(well_id, {'well_id': well_id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
                             'off_list': off_dt_hist, 'time_n': time_n, 'delta_t_n': delta_t_n, 'fieldID': field_id,
                             'comp': comp_type, 'field': field, 'lat': lat, 'lng': lng})
 
@@ -251,11 +251,11 @@ def call_estimator(record, redis_dns):
         time_hist.append(time)
 
         # update redis
-        hist_map.hmset(id, {'id': id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
+        hist_hmap.hmset(id, {'well_id': well_id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
                             'off_list': off_dt_hist, 'time_n': time_n, 'delta_t_n': delta_t_n, 'fieldID': field_id,
                             'comp': comp_type, 'field': field, 'lat': lat, 'lng': lng})
 
-    return record, hist_map.hgetall(id)
+    return record, hist_hmap.hgetall(well_id)
 
 
 # This is only used if the foreachPartition function is used. Otherwise

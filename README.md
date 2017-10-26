@@ -13,8 +13,9 @@ Our goal was to develop a data-driven methodology for estimating production down
 3. [Distributed Computing using Spark](README.md#distributed-computing-using-spark)
 4. [Data Storage using Redis Cache](README.md#data-storage-using-redis-cache)
 5. [The Pipeline](README.md#the-pipeline)
-5. [Setup Steps](README.md#setup-steps)
-6. [FAQ](README.md#faq)
+6. [Demo](README.md#demo)
+7. [Setup Steps](README.md#setup-steps)
+8. [FAQ](README.md#faq)
 
 ## Stream Data Generation
 Data was generated to simulate pump metadata (state-change data). The data includes well ID, event timestamp, event type (shutdown or startup), production volume at shutdown, well completion info., wellbore volume, field, well lat-lng, state. Typically, this information would be collected on scada systems that house operation data. 
@@ -32,6 +33,9 @@ The result of the computation along with recent history information is being sto
 | ![Figure 1](./images/Streaming_Pipeline.png) | 
 |:--:| 
 | *Figure 1: A real-time streaming and processing data pipeline for downtime estimation* |
+
+## Demo
+[![Watch the video](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://youtu.be/QoT7N33Ha1M)
 
 ## Setup Steps
 Coming soon!
