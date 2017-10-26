@@ -166,7 +166,6 @@ def call_estimator(record, redis_dns):
                 cc = solveLinearSys([[r[0], 1], [r[1], 1]], [r[1], r[2]])
                 rn = cc[0] * r[-1] + cc[1]
                 r_inflow = 0.5 * (rn + vol_p / delta_t) - vol_w / delta_t
-                # r_inflow = rn - vol_w / delta_t
             except:
                 r_inflow = vol_p / delta_t - vol_w / delta_t
 
