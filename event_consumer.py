@@ -133,20 +133,13 @@ def call_estimator(record, redis_dns):
     #                 vp_hist.pop(len(vp_hist) - 1)
     #                 on_dt_hist.pop(len(on_dt_hist) - 1)
 
-    # Simple initializaton
-    if history == {}:
-        # Initializing empty list if hist_map on redis is empty for the current wellID
-        time_hist = []
-        vp_hist = []
-        on_dt_hist = []
-        off_dt_hist = []
-        # update_marker = 0
-    else:
+    # Simpler initialization approach than that commented above
+    # read from redis for recent history data or set initial values else set to empty list
+    if history != {}:
         time_hist = ast.literal_eval(history['time'])
         vp_hist = ast.literal_eval(history['vp'])
         on_dt_hist = ast.literal_eval(history['on_list'])
         off_dt_hist = ast.literal_eval(history['off_list'])
-        # update_marker += 1 if update_marker else 0
         if status == history['status']:
             if status == 'on':
                 history['status'] = 'off'
@@ -158,6 +151,11 @@ def call_estimator(record, redis_dns):
                 if vp_hist:
                     vp_hist.pop(len(vp_hist) - 1)
                     on_dt_hist.pop(len(on_dt_hist) - 1)
+    else:  # Initializing empty list if hist_map on redis is empty for the current wellID
+        time_hist = []
+        vp_hist = []
+        on_dt_hist = []
+        off_dt_hist = []
 
 
     # --------------------------
