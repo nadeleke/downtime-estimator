@@ -70,8 +70,14 @@ def call_estimator(record, redis_dns):
 
     time_format = "%Y-%m-%d %H:%M:%S"
 
-    # point to hist_hmap db in redis cache for the current field id
-    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=int(field_id), decode_responses=True)
+    # Additional database sharding mechanism
+    if comp_type == 'BP':
+        j = 0
+    else:
+        j = 10
+
+    # point to appropriate hist_hmap db shard in redis cache for the current field id and completion type
+    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=int(field_id)+j, decode_responses=True)
 
     # obtain recent history from redis cache for current well_id
     history = hist_hmap.hgetall(well_id)
@@ -259,9 +265,9 @@ def call_estimator(record, redis_dns):
 
 
 # This is only used if the foreachPartition function is used. Otherwise
-def call_estimator_looper(rdd, redis_dns):
+def call_estimator_looper(rdd, dns):
     for i in rdd:
-        call_estimator(i, redis_dns)
+        call_estimator(i, dns)
 
 
 
