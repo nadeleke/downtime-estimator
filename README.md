@@ -36,8 +36,6 @@ The result of the computation along with recent history information is being sto
 
 ## Demo
 [![Watch the video](./images/youtube-vid.jpg)](https://youtu.be/QoT7N33Ha1M)
-#https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://youtu.be/QoT7N33Ha1M)
-#https://goo.gl/images/Bv6JbZ
 
 ## Setup Steps
 Coming soon!
