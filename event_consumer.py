@@ -57,12 +57,12 @@ def solveLinearSys(a, b):
 
 
 # This is only used if the foreachPartition function is used. Otherwise
-def call_estimator_looper(rdd):
+def call_estimator_looper(rdd, redis_dns):
     for i in rdd:
-        call_estimator(i)
+        call_estimator(i, redis_dns)
 
 
-def call_estimator(record):
+def call_estimator(record, redis_dns):
     id = record['id']
     time = record['time']
     status = record['status']
@@ -75,7 +75,7 @@ def call_estimator(record):
     time_format = "%Y-%m-%d %H:%M:%S"
 
     ## point to hist_map in distibuted redis cache
-    hist_map = redis.StrictRedis(host=REDIS_DNS, port=6379, db=0, decode_responses=True)
+    hist_map = redis.StrictRedis(host=redis_dns, port=6379, db=0, decode_responses=True)
 
     # Obtain well recent history from redis cache
     history = hist_map.hgetall(id)
@@ -245,22 +245,23 @@ def call_estimator(record):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage: streaming <bootstrap.servers>", file=sys.stderr)
         exit(-1)
 
-    # Setting kafka cluster IP
-    kafkaIP = str(sys.argv[1])
+    kafka_dns = str(sys.argv[1])
+    redis_dns = str(sys.argv[2])
 
     # Spark context
-    sc = SparkContext(appName="event").setLogLevel("WARN")
+    sc = SparkContext(appName="event")
+    sc.setLogLevel("WARN")
 
     # Setting up micro-batching stream context to 1 second intervals
     ssc = StreamingContext(sc, 1)
 
     # Consuming event IoT data from kafka
-    # kafkaStream = KafkaUtils.createStream(ssc, kafkaIP + ':9092', 'spark-streaming', {'event_data_topic': 1})
-    kafkaStream = KafkaUtils.createDirectStream(ssc, ["event_data_topic"], {"bootstrap.servers": kafkaIP + ':9092'})
+    # kafkaStream = KafkaUtils.createStream(ssc, kafka_dns + ':9092', 'spark-streaming', {'event_data_topic': 1})
+    kafkaStream = KafkaUtils.createDirectStream(ssc, ["event_data_topic"], {"bootstrap.servers": kafka_dns + ':9092'})
 
     # counting number of messages in kafka stream
     kafkaStream.count().map(lambda x: 'Messages in this batch: %s' % x).pprint()
@@ -275,8 +276,8 @@ if __name__ == "__main__":
     json_rdd = json_string_rdd.map(lambda x: ast.literal_eval(x))
 
     # Estimate downtime
-    # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
-    json_rdd2 = json_rdd.map(lambda x: call_estimator(x))
+    # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y, redis_dns)))
+    json_rdd2 = json_rdd.map(lambda x: call_estimator(x, redis_dns))
     
     # Write to S3 (This action forces the execution of the transformations above)
     json_rdd2.repartition(1).saveAsTextFiles("s3n://originaleventdata/historicaldata.json")
