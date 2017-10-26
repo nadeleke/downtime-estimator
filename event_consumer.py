@@ -258,6 +258,7 @@ if __name__ == "__main__":
     # Setting up micro-batching stream context to 1 second intervals
     ssc = StreamingContext(sc, 1)
 
+    # Consuming kafka message
     # kafkaStream = KafkaUtils.createStream(ssc, kafkaIP + ':9092', 'spark-streaming', {'event_data_topic': 1})
     kafkaStream = KafkaUtils.createDirectStream(ssc, ["event_data_topic"], {"bootstrap.servers": kafkaIP + ':9092'})
 
