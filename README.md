@@ -35,7 +35,9 @@ The result of the computation along with recent history information is being sto
 | *Figure 1: A real-time streaming and processing data pipeline for downtime estimation* |
 
 ## Demo
-[![Watch the video](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://youtu.be/QoT7N33Ha1M)
+[![Watch the video](https://goo.gl/images/Bv6JbZ)](https://youtu.be/QoT7N33Ha1M)
+#https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://youtu.be/QoT7N33Ha1M)
+#https://goo.gl/images/Bv6JbZ
 
 ## Setup Steps
 Coming soon!
