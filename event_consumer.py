@@ -70,79 +70,60 @@ def call_estimator(record, redis_dns):
 
     time_format = "%Y-%m-%d %H:%M:%S"
 
-    # Additional database sharding mechanism (Note: max. number of db in redis is 16)
-    if comp_type == 'BP' or field_id > 8:
-        j = 0
-    else:
-        j = 8
+    # Database sharding mechanism (Note: max. number of db in redis is 16 (i.e. 0-15))
+    if comp_type == 'BP' or int(field_id) > 8:
+        db_num = int(field_id)-1
+    else:  # shift by 8 (to allow max of 16 db shards)
+        db_num = int(field_id)+7
 
     # point to appropriate hist_hmap db shard in redis cache for the current field id and completion type
-    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=int(field_id)+j-1, decode_responses=True)
+    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=db_num, decode_responses=True)
 
     # obtain recent history from redis cache for current well_id
     history = hist_hmap.hgetall(well_id)
 
-    # read from redis for recent history data or set initial values based on field averages
-    if history == {}:
-
-        if hist_hmap.keys():
-            # if redis is empty compute field averages for initialization parameters
-            vp_hist_sum = [0, 0, 0, 0]
-            on_dt_hist_sum = [0, 0, 0, 0]
-            off_dt_hist_sum = [0, 0, 0, 0]
-            count = 0
-            for temp_id in hist_hmap.keys():
-                history_avg = hist_hmap.hgetall(temp_id)
-                hav1 = ast.literal_eval(history_avg['vp'])
-                hav2 = ast.literal_eval(history_avg['on_list'])
-                hav3 = ast.literal_eval(history_avg['off_list'])
-                if field_id == ast.literal_eval(history_avg['fieldID']) and comp_type == ast.literal_eval(
-                        history_avg['comp']):
-                    if (len(hav1) + len(hav2) + len(hav3)) == 12:
-                        count += 1
-                        vp_hist_sum = [x + y for x, y in zip(vp_hist_sum, hav1)]
-                        on_dt_hist_sum = [x + y for x, y in zip(on_dt_hist_sum, hav2)]
-                        off_dt_hist_sum = [x + y for x, y in zip(off_dt_hist_sum, hav3)]
-                        if count >= 2:
-                            break
-            if count > 0:
-                vp_hist = [x / count for x in vp_hist_sum]
-                on_dt_hist = [x / count for x in on_dt_hist_sum]
-                off_dt_hist = [x / count for x in off_dt_hist_sum]
-                time_hist = [datetime.datetime.strptime(time.decode(), time_format) - datetime.timedelta(seconds=60)]
-            else:
-                # Initializing empty list if hist_hmap on redis is empty for the current wellID
-                time_hist = []
-                vp_hist = []
-                on_dt_hist = []
-                off_dt_hist = []
-        else:
-            # Initializing empty list if hist_hmap on redis is empty for the current wellID
-            time_hist = []
-            vp_hist = []
-            on_dt_hist = []
-            off_dt_hist = []
-
-    else:
-        time_hist = ast.literal_eval(history['time'])
-        vp_hist = ast.literal_eval(history['vp'])
-        on_dt_hist = ast.literal_eval(history['on_list'])
-        off_dt_hist = ast.literal_eval(history['off_list'])
-        if status == history['status']:
-            if status == 'on':
-                history['status'] = 'off'
-                if vp_hist:
-                    vp_hist.pop(len(vp_hist) - 1)
-                    off_dt_hist.pop(len(off_dt_hist) - 1)
-            else:
-                history['status'] = 'on'
-                if vp_hist:
-                    vp_hist.pop(len(vp_hist) - 1)
-                    on_dt_hist.pop(len(on_dt_hist) - 1)
-
-    # # Simpler initialization approach than that above
-    # # read from redis for recent history data or set initial values else set to empty list
-    # if history != {}:
+    # # read from redis for recent history data or set initial values based on field averages
+    # if history == {}:
+    #
+    #     if hist_hmap.keys():
+    #         # if redis is empty compute field averages for initialization parameters
+    #         vp_hist_sum = [0, 0, 0, 0]
+    #         on_dt_hist_sum = [0, 0, 0, 0]
+    #         off_dt_hist_sum = [0, 0, 0, 0]
+    #         count = 0
+    #         for temp_id in hist_hmap.keys():
+    #             history_avg = hist_hmap.hgetall(temp_id)
+    #             hav1 = ast.literal_eval(history_avg['vp'])
+    #             hav2 = ast.literal_eval(history_avg['on_list'])
+    #             hav3 = ast.literal_eval(history_avg['off_list'])
+    #             if field_id == ast.literal_eval(history_avg['fieldID']) and comp_type == ast.literal_eval(
+    #                     history_avg['comp']):
+    #                 if (len(hav1) + len(hav2) + len(hav3)) == 12:
+    #                     count += 1
+    #                     vp_hist_sum = [x + y for x, y in zip(vp_hist_sum, hav1)]
+    #                     on_dt_hist_sum = [x + y for x, y in zip(on_dt_hist_sum, hav2)]
+    #                     off_dt_hist_sum = [x + y for x, y in zip(off_dt_hist_sum, hav3)]
+    #                     if count >= 1:
+    #                         break
+    #         if count > 0:
+    #             vp_hist = [x / count for x in vp_hist_sum]
+    #             on_dt_hist = [x / count for x in on_dt_hist_sum]
+    #             off_dt_hist = [x / count for x in off_dt_hist_sum]
+    #             time_hist = [datetime.datetime.strptime(time.decode(), time_format) - datetime.timedelta(seconds=60)]
+    #         else:
+    #             # Initializing empty list if hist_hmap on redis is empty for the current wellID
+    #             time_hist = []
+    #             vp_hist = []
+    #             on_dt_hist = []
+    #             off_dt_hist = []
+    #     else:
+    #         # Initializing empty list if hist_hmap on redis is empty for the current wellID
+    #         time_hist = []
+    #         vp_hist = []
+    #         on_dt_hist = []
+    #         off_dt_hist = []
+    #
+    # else:
     #     time_hist = ast.literal_eval(history['time'])
     #     vp_hist = ast.literal_eval(history['vp'])
     #     on_dt_hist = ast.literal_eval(history['on_list'])
@@ -158,11 +139,30 @@ def call_estimator(record, redis_dns):
     #             if vp_hist:
     #                 vp_hist.pop(len(vp_hist) - 1)
     #                 on_dt_hist.pop(len(on_dt_hist) - 1)
-    # else:  # Initializing empty list if hist_hmap on redis is empty for the current wellID
-    #     time_hist = []
-    #     vp_hist = []
-    #     on_dt_hist = []
-    #     off_dt_hist = []
+
+    # Simpler initialization approach than that above
+    # read from redis for recent history data or set initial values else set to empty list
+    if history != {}:
+        time_hist = ast.literal_eval(history['time'])
+        vp_hist = ast.literal_eval(history['vp'])
+        on_dt_hist = ast.literal_eval(history['on_list'])
+        off_dt_hist = ast.literal_eval(history['off_list'])
+        if status == history['status']:
+            if status == 'on':
+                history['status'] = 'off'
+                if vp_hist:
+                    vp_hist.pop(len(vp_hist) - 1)
+                    off_dt_hist.pop(len(off_dt_hist) - 1)
+            else:
+                history['status'] = 'on'
+                if vp_hist:
+                    vp_hist.pop(len(vp_hist) - 1)
+                    on_dt_hist.pop(len(on_dt_hist) - 1)
+    else:  # Initializing empty list if hist_hmap on redis is empty for the current wellID
+        time_hist = []
+        vp_hist = []
+        on_dt_hist = []
+        off_dt_hist = []
 
 
     # --------------------------
@@ -304,11 +304,11 @@ if __name__ == "__main__":
     json_rdd = json_string_rdd.map(lambda x: ast.literal_eval(x))
 
     # Estimate downtime
-    # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y, redis_dns)))
-    json_rdd2 = json_rdd.map(lambda x: call_estimator(x, redis_dns))
-    json_rdd2.count().pprint()  # This forces the execution of the mapping procedures above if foreach RDD is not used
+    json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y, redis_dns)))
+    # json_rdd2 = json_rdd.map(lambda x: call_estimator(x, redis_dns))
+    # json_rdd2.pprint()  # This forces the execution of the mapping procedures above if foreach RDD is not used
 
-    # Write to S3 (This action forces the execution of the transformations above)
+    # Write to S3 (I need a separate parallel process for this task. It's memory intensive)
     # json_rdd2.repartition(1).saveAsTextFiles("s3n://originaleventdata/historicaldata.json")
     # json_rdd2.saveAsTextFiles("s3a://originaleventdata/historicaldata.json")
 
