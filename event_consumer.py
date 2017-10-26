@@ -71,13 +71,13 @@ def call_estimator(record, redis_dns):
     time_format = "%Y-%m-%d %H:%M:%S"
 
     # Additional database sharding mechanism
-    if comp_type == 'BP':
+    if comp_type == 'BP' or field_id > 6:
         j = 0
     else:
         j = 10
 
     # point to appropriate hist_hmap db shard in redis cache for the current field id and completion type
-    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=int(field_id)+j, decode_responses=True)
+    hist_hmap = redis.StrictRedis(host=redis_dns, port=6379, db=int(field_id)+j-1, decode_responses=True)
 
     # obtain recent history from redis cache for current well_id
     history = hist_hmap.hgetall(well_id)
@@ -103,7 +103,7 @@ def call_estimator(record, redis_dns):
                         vp_hist_sum = [x + y for x, y in zip(vp_hist_sum, hav1)]
                         on_dt_hist_sum = [x + y for x, y in zip(on_dt_hist_sum, hav2)]
                         off_dt_hist_sum = [x + y for x, y in zip(off_dt_hist_sum, hav3)]
-                        if count >= 5:
+                        if count >= 2:
                             break
             if count > 0:
                 vp_hist = [x / count for x in vp_hist_sum]
@@ -257,7 +257,7 @@ def call_estimator(record, redis_dns):
         time_hist.append(time)
 
         # update redis
-        hist_hmap.hmset(id, {'well_id': well_id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
+        hist_hmap.hmset(well_id, {'well_id': well_id, 'status': status, 'time': time_hist, 'vp': vp_hist, 'on_list': on_dt_hist,
                             'off_list': off_dt_hist, 'time_n': time_n, 'delta_t_n': delta_t_n, 'fieldID': field_id,
                             'comp': comp_type, 'field': field, 'lat': lat, 'lng': lng})
 
