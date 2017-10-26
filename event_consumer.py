@@ -63,7 +63,7 @@ def call_estimator_looper(rdd, redis_dns):
 
 
 def call_estimator(record, redis_dns):
-    id = record['id']
+    id = record['id'].decode()
     time = record['time']
     status = record['status']
     vol_p = record['vp']
