@@ -12,40 +12,7 @@ from pyspark.streaming.kafka import KafkaUtils
 # from pyspark.sql.types import StructType, IntegerType, StringType, StructField
 
 
-# # Lazily instantiated global instance of SparkSession
-# def getSparkSessionInstance(sparkConf):
-#     if ("sparkSessionSingletonInstance" not in globals()):
-#         globals()["sparkSessionSingletonInstance"] = SparkSession \
-#             .builder \
-#             .config(conf=sparkConf) \
-#             .getOrCreate()
-#     return globals()["sparkSessionSingletonInstance"]
-#
-#
-# def process(rdd):
-#     try:
-#         # Get the singleton instance of SparkSession
-#         spark = getSparkSessionInstance(rdd.context.getConf())
-#
-#         df = spark.read.json(rdd)
-#
-#         # Creates a temporary view using the DataFrame
-#         df.createOrReplaceTempView("temp")
-#         # df.show()
-#         sqlDF = spark.sql("SELECT id as wellid, field_name as field, dt, wellbore_vol as prod_vol FROM temp")
-#         sqlDF.show()
-#
-#         sqlDF.write \
-#             .format("org.apache.spark.sql.cassandra") \
-#             .mode('append') \
-#             .options(table="test", keyspace="downtime_estimation") \
-#             .save()
-#     except:
-#         pass
-
-
 def getEvents(tokens):
-    # dt = datetime.datetime.strptime(tokens[0], "%Y-%m-%d %H:%M:%S")
     dt = tokens[0].decode()
     ID = tokens[1].decode()
     status = tokens[2].decode()
@@ -89,7 +56,7 @@ def solveLinearSys(a, b):
     return np.linalg.solve(a, b)
 
 
-# This is only used if the foreachPartition function is used. Otherwise 
+# This is only used if the foreachPartition function is used. Otherwise
 def call_estimator_looper(rdd):
     for i in rdd:
         call_estimator(i)
@@ -104,6 +71,8 @@ def call_estimator(record):
     field_id = record['fieldID']
     comp_type = record['comp']
     field = record['field_name']
+
+    time_format = "%Y-%m-%d %H:%M:%S"
 
     ## point to hist_map in distibuted redis cache
     hist_map = redis.StrictRedis(host=REDIS_DNS, port=6379, db=0, decode_responses=True)
@@ -137,8 +106,7 @@ def call_estimator(record):
                 vp_hist = [x / count for x in vp_hist_sum]
                 on_dt_hist = [x / count for x in on_dt_hist_sum]
                 off_dt_hist = [x / count for x in off_dt_hist_sum]
-                time_hist = [
-                    datetime.datetime.strptime(time.decode(), "%Y-%m-%d %H:%M:%S") - datetime.timedelta(seconds=60)]
+                time_hist = [datetime.datetime.strptime(time.decode(), time_format) - datetime.timedelta(seconds=60)]
             else:
                 # Initializing empty list if hist_map on redis is empty for the current wellID
                 time_hist = []
@@ -209,8 +177,7 @@ def call_estimator(record):
             delta_t_n = r_inflow / vol_w
 
             # determine estimated time for next start up
-            time_n = datetime.timedelta(seconds=delta_t_n) + datetime.datetime.strptime(time.decode(),
-                                                                                        "%Y-%m-%d %H:%M:%S")
+            time_n = datetime.timedelta(seconds=delta_t_n) + datetime.datetime.strptime(time.decode(), time_format)
 
         else:  # update off_list and set identifier
 
@@ -243,7 +210,7 @@ def call_estimator(record):
                 vp_hist.append(vol_p)
                 # update on_list
                 on_dt_hist.append(delta_t)
-                # time_n = datetime.timedelta(seconds=delta_t) + datetime.datetime.strptime(time.decode(), "%Y-%m-%d %H:%M:%S")
+                # time_n = datetime.timedelta(seconds=delta_t) + datetime.datetime.strptime(time.decode(), time_format)
                 # delta_t_n = -2
 
                 # Inflow rate
@@ -253,8 +220,7 @@ def call_estimator(record):
                 delta_t_n = r_inflow / vol_w
 
                 # Estimate up time
-                time_n = datetime.timedelta(seconds=delta_t) + datetime.datetime.strptime(time.decode(),
-                                                                                          "%Y-%m-%d %H:%M:%S")
+                time_n = datetime.timedelta(seconds=delta_t) + datetime.datetime.strptime(time.decode(), time_format)
             else:
                 # determine delta_t
                 delta_t = seconds_between(time, time_hist[-1])
@@ -283,13 +249,15 @@ if __name__ == "__main__":
         print("Usage: streaming <bootstrap.servers>", file=sys.stderr)
         exit(-1)
 
+    # Setting kafka cluster IP
     kafkaIP = str(sys.argv[1])
 
-    sc = SparkContext(appName="event")
-    sc.setLogLevel("WARN")
+    # Spark context
+    sc = SparkContext(appName="event").setLogLevel("WARN")
+
+    # Setting up micro-batching stream context to 1 second intervals
     ssc = StreamingContext(sc, 1)
 
-    # kafkaStream = KafkaUtils.createStream(ssc, 'localhost:2181', 'spark-streaming', {'event_data_topic': 1})
     # kafkaStream = KafkaUtils.createStream(ssc, kafkaIP + ':9092', 'spark-streaming', {'event_data_topic': 1})
     kafkaStream = KafkaUtils.createDirectStream(ssc, ["event_data_topic"], {"bootstrap.servers": kafkaIP + ':9092'})
 
@@ -298,15 +266,12 @@ if __name__ == "__main__":
 
     # extracting data and counting
     tuple_rdd = kafkaStream.map(lambda x: x[1])
-    # tuple_rdd.pprint()
 
     # converting 'string of tuple' to tuple and extracting string of dictionary
     json_string_rdd = tuple_rdd.map(lambda x: ast.literal_eval(x)[1])
-    # json_rdd.pprint()
 
     # Convert 'string of dictionary' to dictionary
     json_rdd = json_string_rdd.map(lambda x: ast.literal_eval(x))
-    # json_rdd.pprint()
 
     # Estimate downtime
     # json_rdd.foreachRDD(lambda x: x.foreachPartition(lambda y: call_estimator_looper(y)))
@@ -314,7 +279,6 @@ if __name__ == "__main__":
     
     # Write to S3 (This action forces the execution of the transformations above)
     json_rdd2.repartition(1).saveAsTextFiles("s3n://originaleventdata/historicaldata.json")
-
 
     ssc.start()
     ssc.awaitTermination()
