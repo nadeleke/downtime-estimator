@@ -7,6 +7,6 @@
 # /usr/local/kafka/bin/kafka-topics.sh --describe --zookeeper localhost:2181
 
 # Spawn kafka producer threads as shown below from publisher location 
-# bash spawn_producer_threads.sh $ANY_CLUSTER_IP 8 1
+# bash spawn_producer_threads.sh $ANY_CLUSTER_IP 1 1
 
 
