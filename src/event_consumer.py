@@ -101,8 +101,9 @@ def call_estimator(record, redis_dns):
                     on_dt_hist.pop(len(on_dt_hist) - 1)
     else:  # Initializing with field ave or empty list if hist_hmap on redis is empty for the current wellID
         field_ave = hist_hmap.hgetall('field_ave')
-        if field_ave != {}:
-            vp_hist = field_ave['vp_hist_avg']
+        vp_hist_avg = field_ave['vp_hist_avg']
+        if len(vp_hist_avg) >= 3:
+            vp_hist = vp_hist_avg
             on_dt_hist = field_ave['on_dt_hist_avg']
             off_dt_hist = field_ave['off_dt_hist_avg']
             time_hist = []
@@ -210,12 +211,15 @@ def call_estimator(record, redis_dns):
                             'comp': comp_type, 'field': field, 'lat': lat, 'lng': lng})
 
         #  Computing field running average
-        if len(vp_hist) > 3:
-            field_ave = hist_hmap.hgetall('field_ave')
+        field_ave = hist_hmap.hgetall('field_ave')
+        vp_hist_sum = field_ave['vp_hist_sum']
+        on_dt_hist_sum = field_ave['on_dt_hist_sum']
+        off_dt_hist_sum = field_ave['off_dt_hist_sum']
+        if len(vp_hist_sum) > 3:
             count = field_ave['count'] + 1
-            vp_hist_sum = [x + y for x, y in zip(field_ave['vp_hist_sum'], vp_hist)]
-            on_dt_hist_sum = [x + y for x, y in zip(field_ave['on_dt_hist_sum'], on_dt_hist)]
-            off_dt_hist_sum = [x + y for x, y in zip(field_ave['off_dt_hist_sum'], off_dt_hist)]
+            vp_hist_sum = [x + y for x, y in zip(vp_hist_sum, vp_hist)]
+            on_dt_hist_sum = [x + y for x, y in zip(on_dt_hist_sum, on_dt_hist)]
+            off_dt_hist_sum = [x + y for x, y in zip(off_dt_hist_sum, off_dt_hist)]
             vp_hist_avg = [x / count for x in vp_hist_sum]
             on_dt_hist_avg = [x / count for x in on_dt_hist_sum]
             off_dt_hist_avg = [x / count for x in off_dt_hist_sum]
