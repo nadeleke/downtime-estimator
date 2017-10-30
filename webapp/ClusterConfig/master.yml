@@ -1,8 +1,8 @@
 purchase_type: on_demand
-subnet_id: subnet-c1cb19a5
+subnet_id: $subnet
 num_instances: 1
-key_name: najeem-IAM-keypair
-security_group_ids: sg-4c063e3c
+key_name: $keypair
+security_group_ids: $sg
 instance_type: t2.micro
 tag_name: webapp-node
 vol_size: 100
