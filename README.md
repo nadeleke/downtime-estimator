@@ -21,10 +21,10 @@ Our goal was to develop a data-driven methodology for estimating production down
 Data was generated to simulate pump metadata. The data includes well ID, event timestamp, event type (shutdown or startup), production volume at shutdown, well completion info., wellbore volume, field, well lat-lng, state. Typically, this information would be collected on scada systems that house operation data. 
 
 ## Data Ingestion using Kafka
-Data ingestion for the data stream was published on a distributed kafka cluster on AWS ec2 (an elastic cloud computing platform). The `event-producer.py` script generates the pump metadata and sends them to the kafka queue.
+Data ingestion for the data stream was published on a distributed kafka cluster on AWS ec2 (an elastic cloud computing platform). The `src/event-producer.py` script generates the pump metadata and sends them to the kafka queue.
 
 ## Distributed Computing using Spark
-Data consumption and distributed computing is conducted using spark-streaming's streaming session, which is a micro-batching module in the pyspark library. Computations are distributed on four ec2 nodes (1 master and 3 workers). Zookeeper and spark were installed on these nodes using pegasus (a VM based deployment tool for prototyping other Big Data tools on Amazon Web Services). The `event-consumer.py` script is the pyspark code that consumes the data from the kafka queue and processes them real-time in a distributed manner. This code also saves the original data to AWS S3, which is a highly scalable data repository.The same code also saved processed data result and recent history well parameters into redis. 
+Data consumption and distributed computing is conducted using spark-streaming's streaming session, which is a micro-batching module in the pyspark library. Computations are distributed on four ec2 nodes (1 master and 3 workers). Zookeeper and spark were installed on these nodes using pegasus (a VM based deployment tool for prototyping other Big Data tools on Amazon Web Services). The `src/event-consumer.py` script is the pyspark code that consumes the data from the kafka queue and processes them real-time in a distributed manner. This code also saves the original data to AWS S3, which is a highly scalable data repository.The same code also saved processed data result and recent history well parameters into redis. 
 
 ## Data Storage using Redis Cache
 The result of the computation along with recent history data for individual wells is stored in a replicated redis node. The reason for this is to prevent data loss in case of node failures in addition to the high availabilty advantage of redis cache. 
@@ -42,4 +42,6 @@ Coming soon!
 
 ## FAQ
 Coming soon!
+
+Send questions to nadeleke@gmail.com
 
